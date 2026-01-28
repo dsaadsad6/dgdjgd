@@ -2,61 +2,58 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>我的每日打卡</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>個人每日打卡</title>
 <style>
-  body {
-    font-family: system-ui;
-    background: #0f172a;
-    color: #e5e7eb;
-    text-align: center;
-    padding: 20px;
-  }
-  input, button {
-    padding: 8px 14px;
-    border-radius: 999px;
-    border: none;
-    margin: 6px;
-    font-size: 1rem;
-  }
-  button {
-    background: #22c55e;
-    color: #022c22;
-    cursor: pointer;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(7, 14px);
-    gap: 4px;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  .day {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    background: #1e293b; /* 初始深灰色 */
-  }
+body {
+  font-family: system-ui;
+  background: #0f172a;
+  color: #e5e7eb;
+  text-align: center;
+  padding: 20px;
+}
+input, button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  margin: 6px;
+  font-size: 1rem;
+}
+button {
+  background: #22c55e;
+  color: #022c22;
+  cursor: pointer;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 14px);
+  gap: 4px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.day {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: #1e293b;
+}
+.lvl1 { background: #86efac; }
+.lvl2 { background: #4ade80; }
+.lvl3 { background: #22c55e; }
+.lvl4 { background: #16a34a; }
 </style>
 </head>
 <body>
 
-<h1>📅 我的每日打卡</h1>
+<h1>📅 個人每日打卡</h1>
 
 <input id="username" placeholder="輸入你的名字">
 <br>
 <button id="checkinBtn">今天打卡</button>
-<button id="exportBtn">匯出 Excel</button>
+<button id="exportSelfBtn">匯出個人 CSV</button>
 
 <p id="streak">🔥 連續打卡 0 天</p>
 
-<div class="grid" id="grid">
-  <!-- 這裡會放格子，先全部用深灰占位 -->
-  <!-- 7x16 = 112 天範例 -->
-  <div class="day"></div><div class="day"></div><div class="day"></div>
-  <div class="day"></div><div class="day"></div><div class="day"></div>
-  <div class="day"></div>
-  <!-- 可複製到 112 個格子，或等 JS 自動生成 -->
-</div>
+<div class="grid" id="grid"></div>
 
-</body>
-</html>
+<s
