@@ -14,6 +14,7 @@ body {
   padding: 20px;
   margin: 0;
   position: relative;
+  transition: background 0.3s;
 }
 body::before {
   content: "";
@@ -46,6 +47,20 @@ button {
   margin-bottom: 4px;
   border-radius: 6px;
 }
+#bgControl {
+  margin-top: 12px;
+}
+#bgControl input {
+  padding: 6px;
+  width: 60%;
+  border-radius: 6px;
+  border: none;
+  margin-right: 6px;
+}
+#bgControl button {
+  background: #f59e0b;
+  color: #1e293b;
+}
 </style>
 </head>
 <body>
@@ -59,16 +74,23 @@ button {
 
 <div id="history"><strong>📖 打卡紀錄：</strong></div>
 
+<!-- 背景控制區 -->
+<div id="bgControl">
+  <p>更換背景圖片：</p>
+  <input type="text" id="bgUrl" placeholder="貼上圖片網址">
+  <button id="changeBg">套用背景</button>
+</div>
+
 <script>
 const KEY = "checkin_history";
 const FIXED_NAME = "蔡明勳";
 
+// 讀取資料
 function load() { return JSON.parse(localStorage.getItem(KEY)) || []; }
 function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
 function today() { return new Date().toISOString().split("T")[0]; }
-function nowTime() { return new Date().toLocaleTimeString(); }
 
-// 更新歷史紀錄文字
+// 渲染文字歷史紀錄（只顯示日期）
 function renderHistory() {
   const data = load();
   const historyEl = document.getElementById("history");
@@ -76,42 +98,42 @@ function renderHistory() {
   data.forEach(item => {
     const div = document.createElement("div");
     div.className = "history-item";
-    div.textContent = `👤 ${FIXED_NAME} ✅ ${item.date} ${item.time}`;
+    div.textContent = `👤 ${FIXED_NAME} ✅ ${item.date}`;
     historyEl.appendChild(div);
   });
 }
 
-// 計算連續天數
+// 計算連續打卡天數
 function calcStreak(data) {
   let streak = 0;
   let d = new Date();
-  while (data.some(e=>e.date===d.toISOString().split("T")[0])) {
+  while (data.some(e => e.date === d.toISOString().split("T")[0])) {
     streak++;
     d.setDate(d.getDate()-1);
   }
   return streak;
 }
 
-// 打卡按鈕
+// 打卡按鈕事件
 document.getElementById("checkinBtn").onclick = () => {
   const data = load();
   const t = today();
-  if (data.some(e=>e.date===t)) { alert("今天已打過卡 ✅"); return; }
+  if (data.some(e => e.date === t)) { alert("今天已打過卡 ✅"); return; }
 
-  data.push({date: t, time: nowTime()});
+  data.push({date: t});
   save(data);
   renderHistory();
   document.getElementById("streak").textContent = `🔥 ${FIXED_NAME} 連續打卡 ${calcStreak(data)} 天`;
 };
 
-// 匯出 CSV
+// 匯出 CSV（只輸出日期）
 document.getElementById("exportBtn").onclick = () => {
   const data = load();
-  if (data.length===0) { alert("沒有打卡資料可以匯出"); return; }
+  if (data.length === 0) { alert("沒有打卡資料可以匯出"); return; }
 
-  let csv = "姓名,日期,時間\n";
+  let csv = "姓名,日期\n";
   data.forEach(e => {
-    csv += `${FIXED_NAME},${e.date},${e.time}\n`;
+    csv += `${FIXED_NAME},${e.date}\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -121,10 +143,15 @@ document.getElementById("exportBtn").onclick = () => {
   link.click();
 };
 
+// 更換背景按鈕事件
+document.getElementById("changeBg").onclick = () => {
+  const url = document.getElementById("bgUrl").value;
+  if(url) document.body.style.backgroundImage = `url("${url}")`;
+};
+
 // 初始渲染
-const data = load();
 renderHistory();
-document.getElementById("streak").textContent = `🔥 ${FIXED_NAME} 連續打卡 ${calcStreak(data)} 天`;
+document.getElementById("streak").textContent = `🔥 ${FIXED_NAME} 連續打卡 ${calcStreak(load())} 天`;
 
 </script>
 
