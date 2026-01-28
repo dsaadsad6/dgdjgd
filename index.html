@@ -7,11 +7,23 @@
 <style>
 body {
   font-family: system-ui;
-  background: #0f172a;
-  color: #e5e7eb;
+  background: url("https://img.131213.xyz/tfile/BQACAgUAAx0Eflp52gABASOpaXoX18VMcEh-9ujAMfSPDIvuO0cAAgkfAAIRCdFXK1VFE5mvV6c4BA") no-repeat center center fixed;
+  background-size: cover;
+  color: #ffffff;
   text-align: center;
   padding: 20px;
+  position: relative;
+  margin: 0;
 }
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); /* 半透明遮罩，讓文字清楚 */
+  z-index: -1;
+}
+
 button {
   padding: 8px 14px;
   border-radius: 999px;
@@ -22,16 +34,17 @@ button {
   color: #022c22;
   cursor: pointer;
 }
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(7, 14px);
-  gap: 4px;
+  grid-template-columns: repeat(7, 20px);
+  gap: 5px;
   justify-content: center;
   margin-top: 20px;
 }
 .day {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border-radius: 3px;
   background: #1e293b;
   cursor: pointer;
@@ -40,6 +53,7 @@ button {
 .lvl2 { background: #4ade80; }
 .lvl3 { background: #22c55e; }
 .lvl4 { background: #16a34a; }
+
 </style>
 </head>
 <body>
@@ -119,7 +133,7 @@ function render() {
     const div = document.createElement("div");
     div.className = `day lvl${getLevel(dateStr, data)}`;
 
-    // hover 顯示日期 + ✅ 或未打卡
+    // hover 顯示日期 + ✅ 或 ❌
     div.title = data.includes(dateStr) ? `✅ ${dateStr}` : `❌ ${dateStr}`;
 
     // 點格子補打卡
