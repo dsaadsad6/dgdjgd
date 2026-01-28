@@ -12,14 +12,12 @@ body {
   text-align: center;
   padding: 20px;
 }
-input, button {
+button {
   padding: 8px 14px;
   border-radius: 999px;
   border: none;
   margin: 6px;
   font-size: 1rem;
-}
-button {
   background: #22c55e;
   color: #022c22;
   cursor: pointer;
@@ -47,10 +45,8 @@ button {
 
 <h1>📅 個人每日打卡</h1>
 
-<input id="username" placeholder="輸入你的名字">
-<br>
 <button id="checkinBtn">今天打卡</button>
-<button id="exportSelfBtn">匯出個人 CSV</button>
+<button id="exportBtn">匯出 CSV</button>
 
 <p id="streak">🔥 連續打卡 0 天</p>
 
@@ -59,8 +55,8 @@ button {
 <script>
 const KEY = "checkin_history";
 const DAYS = 112;
+const FIXED_NAME = "我";
 
-const nameInput = document.getElementById("username");
 const grid = document.getElementById("grid");
 const streakEl = document.getElementById("streak");
 
@@ -75,30 +71,23 @@ function today() {
   return new Date().toISOString().split("T")[0];
 }
 
-// 名字自動記錄
-nameInput.value = localStorage.getItem("checkin_username") || "";
-nameInput.oninput = () => localStorage.setItem("checkin_username", nameInput.value.trim());
-
 // 打卡
 document.getElementById("checkinBtn").onclick = () => {
-  const name = nameInput.value.trim();
-  if (!name) { alert("請輸入名字"); return; }
-
   const data = load();
   const t = today();
-  const exist = data.find(e => e.name === name && e.date === t);
+  const exist = data.find(e => e.date === t);
   if (exist) { alert("今天已打過卡"); return; }
 
-  data.push({ name, date: t });
+  data.push({ date: t });
   save(data);
   render();
 };
 
 // 計算連續天數
-function calcStreak(data, name) {
+function calcStreak(data) {
   let streak = 0;
   let d = new Date();
-  while (data.find(e => e.name === name && e.date === d.toISOString().split("T")[0])) {
+  while (data.find(e => e.date === d.toISOString().split("T")[0])) {
     streak++;
     d.setDate(d.getDate() - 1);
   }
@@ -106,14 +95,14 @@ function calcStreak(data, name) {
 }
 
 // 格子顏色
-function getLevel(dateStr, data, name) {
+function getLevel(dateStr, data) {
   let count = 0;
   const d = new Date(dateStr);
   for (let i = 0; i < 4; i++) {
     const key = new Date(d);
     key.setDate(d.getDate() - i);
     const keyStr = key.toISOString().split("T")[0];
-    if (data.find(e => e.name === name && e.date === keyStr)) count++;
+    if (data.find(e => e.date === keyStr)) count++;
   }
   return Math.min(count, 4);
 }
@@ -121,41 +110,35 @@ function getLevel(dateStr, data, name) {
 // 畫格子
 function render() {
   const data = load();
-  const name = nameInput.value.trim();
   grid.innerHTML = "";
 
   for (let i = DAYS - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const div = document.createElement("div");
-    div.className = `day lvl${getLevel(d.toISOString().split("T")[0], data, name)}`;
+    div.className = `day lvl${getLevel(d.toISOString().split("T")[0], data)}`;
     grid.appendChild(div);
   }
 
-  streakEl.textContent = name
-    ? `🔥 ${name} 連續打卡 ${calcStreak(data, name)} 天`
-    : "🔥 連續打卡 0 天";
+  streakEl.textContent = `🔥 連續打卡 ${calcStreak(data)} 天`;
 }
 
 render();
 
-// 匯出個人 CSV
-document.getElementById("exportSelfBtn").onclick = () => {
-  const name = nameInput.value.trim();
-  if (!name) { alert("請輸入名字"); return; }
-
-  const data = load().filter(e => e.name === name);
+// 匯出 CSV
+document.getElementById("exportBtn").onclick = () => {
+  const data = load();
   if (data.length === 0) { alert("沒有打卡資料可以匯出"); return; }
 
   let csv = "姓名,日期,是否打卡\n";
   data.forEach(e => {
-    csv += `${e.name},${e.date},是\n`;
+    csv += `${FIXED_NAME},${e.date},是\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = `${name}_打卡紀錄.csv`;
+  link.download = `${FIXED_NAME}_打卡紀錄.csv`;
   link.click();
 };
 </script>
