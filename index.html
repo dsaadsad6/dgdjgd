@@ -46,7 +46,7 @@ button {
 
 <h1>📅 個人每日打卡</h1>
 
-<button id="checkinBtn">今天打卡</button>
+<button id="checkinBtn">今天打卡 ✅</button>
 <button id="exportBtn">匯出 CSV</button>
 
 <p id="streak">🔥 連續打卡 0 天</p>
@@ -72,22 +72,13 @@ function today() {
   return new Date().toISOString().split("T")[0];
 }
 
-// 保證 HH:MM:SS 格式
-function currentTime() {
-  const d = new Date();
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
-  const s = String(d.getSeconds()).padStart(2, "0");
-  return `${h}:${m}:${s}`;
-}
-
 // 打卡
 document.getElementById("checkinBtn").onclick = () => {
   const data = load();
   const t = today();
-  if (data.find(e => e.date === t)) { alert("今天已打過卡"); return; }
+  if (data.includes(t)) { alert("今天已打過卡 ✅"); return; }
 
-  data.push({ date: t, time: currentTime() });
+  data.push(t);
   save(data);
   render();
 };
@@ -96,7 +87,7 @@ document.getElementById("checkinBtn").onclick = () => {
 function calcStreak(data) {
   let streak = 0;
   let d = new Date();
-  while (data.find(e => e.date === d.toISOString().split("T")[0])) {
+  while (data.includes(d.toISOString().split("T")[0])) {
     streak++;
     d.setDate(d.getDate() - 1);
   }
@@ -111,7 +102,7 @@ function getLevel(dateStr, data) {
     const key = new Date(d);
     key.setDate(d.getDate() - i);
     const keyStr = key.toISOString().split("T")[0];
-    if (data.find(e => e.date === keyStr)) count++;
+    if (data.includes(keyStr)) count++;
   }
   return Math.min(count, 4);
 }
@@ -128,20 +119,17 @@ function render() {
     const div = document.createElement("div");
     div.className = `day lvl${getLevel(dateStr, data)}`;
 
-    // hover 顯示打卡時間
-    const entry = data.find(e => e.date === dateStr);
-    if (entry) div.title = `${dateStr} ${entry.time}`;
-    else div.title = `${dateStr}（未打卡）`;
+    // hover 顯示日期 + ✅ 或未打卡
+    div.title = data.includes(dateStr) ? `✅ ${dateStr}` : `❌ ${dateStr}`;
 
     // 點格子補打卡
     div.onclick = () => {
-      const existing = data.find(e => e.date === dateStr);
-      if (!existing) {
-        data.push({ date: dateStr, time: currentTime() });
+      if (!data.includes(dateStr)) {
+        data.push(dateStr);
         save(data);
         render();
       } else {
-        alert(`${dateStr} 已打過卡（${existing.time}）`);
+        alert(`${dateStr} 已打過卡 ✅`);
       }
     };
 
@@ -158,9 +146,9 @@ document.getElementById("exportBtn").onclick = () => {
   const data = load();
   if (data.length === 0) { alert("沒有打卡資料可以匯出"); return; }
 
-  let csv = "姓名,日期,時間,是否打卡\n";
+  let csv = "姓名,日期,是否打卡\n";
   data.forEach(e => {
-    csv += `${FIXED_NAME},${e.date},${e.time},是\n`;
+    csv += `${FIXED_NAME},${e},✅\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
