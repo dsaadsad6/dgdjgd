@@ -7,8 +7,8 @@
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
+      background: #f0f4f8;
+      color: #1e293b;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -16,11 +16,11 @@
       margin: 0;
     }
     .card {
-      background: #020617;
+      background: #ffffff;
       border-radius: 16px;
       padding: 24px 28px;
-      width: 320px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      width: 360px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.1);
       text-align: center;
     }
     h1 {
@@ -28,26 +28,51 @@
       font-size: 1.5rem;
     }
     .date {
-      margin: 12px 0 20px;
-      color: #94a3b8;
+      margin: 8px 0;
+      color: #64748b;
     }
     button {
-      background: #22c55e;
-      color: #052e16;
+      background: #3b82f6;
+      color: #ffffff;
       border: none;
       border-radius: 999px;
       padding: 12px 20px;
       font-size: 1rem;
       cursor: pointer;
+      margin-top: 8px;
     }
     button:disabled {
-      background: #334155;
-      color: #94a3b8;
+      background: #94a3b8;
       cursor: not-allowed;
     }
     .status {
-      margin-top: 16px;
+      margin-top: 12px;
       font-size: 0.95rem;
+    }
+    .streak {
+      margin-top: 8px;
+      font-weight: bold;
+      color: #10b981;
+    }
+    hr {
+      margin:16px 0;
+      border:0;
+      border-top:1px solid #e2e8f0;
+    }
+    ul {
+      list-style:none;
+      padding-left:0;
+      max-height:150px;
+      overflow-y:auto;
+      text-align:left;
+      margin:0;
+    }
+    li {
+      margin-bottom:4px;
+    }
+    #exportBtn {
+      background: #ef4444;
+      margin-top:12px;
     }
   </style>
 </head>
@@ -57,30 +82,100 @@
     <div class="date" id="today"></div>
     <button id="checkBtn">打卡</button>
     <div class="status" id="status"></div>
+    <div class="streak" id="streak"></div>
+    <hr />
+    <div style="text-align:left; font-size:0.9rem;">
+      <strong>📖 打卡紀錄</strong>
+      <ul id="history"></ul>
+    </div>
+    <button id="exportBtn">匯出 CSV</button>
   </div>
 
   <script>
     const today = new Date();
-    const dateKey = today.toISOString().split('T')[0]; // YYYY-MM-DD
-
+    const dateKey = today.toISOString().split('T')[0];
     const todayEl = document.getElementById('today');
     const btn = document.getElementById('checkBtn');
     const statusEl = document.getElementById('status');
+    const streakEl = document.getElementById('streak');
+    const historyEl = document.getElementById('history');
+    const exportBtn = document.getElementById('exportBtn');
 
     todayEl.textContent = `今天是 ${dateKey}`;
 
-    const checked = localStorage.getItem('checkin-' + dateKey);
+    let history = JSON.parse(localStorage.getItem('checkin-history') || '[]');
 
-    if (checked) {
-      btn.disabled = true;
-      statusEl.textContent = `✅ 已於 ${checked} 打卡`;
+    function renderHistory() {
+      historyEl.innerHTML = '';
+      history.slice().reverse().forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `✅ ${item.date} ${item.time}`;
+        historyEl.appendChild(li);
+      });
     }
 
-    btn.addEventListener('click', () => {
+    function calcStreak() {
+      if(history.length===0) return 0;
+      let streak = 0;
+      const sorted = [...history].sort((a,b)=> new Date(a.date)-new Date(b.date));
+      let todayDate = new Date(dateKey);
+      for(let i=sorted.length-1;i>=0;i--){
+        let d = new Date(sorted[i].date);
+        if(i===sorted.length-1){
+          if(Math.abs(todayDate-d)/(1000*60*60*24)<=1){
+            streak++;
+            todayDate = new Date(d);
+            todayDate.setDate(todayDate.getDate()-1);
+          }else break;
+        } else {
+          let prev = new Date(sorted[i].date);
+          if(Math.abs(todayDate-prev)/(1000*60*60*24)<=1){
+            streak++;
+            todayDate = new Date(prev);
+            todayDate.setDate(todayDate.getDate()-1);
+          } else break;
+        }
+      }
+      return streak;
+    }
+
+    function updateStreak() {
+      const streak = calcStreak();
+      streakEl.textContent = `🔥 連續打卡 ${streak} 天`;
+    }
+
+    renderHistory();
+    updateStreak();
+
+    const checkedToday = history.find(h => h.date === dateKey);
+    if(checkedToday){
+      btn.disabled = true;
+      statusEl.textContent = `✅ 已於 ${checkedToday.time} 打卡`;
+    }
+
+    btn.addEventListener('click',()=>{
       const time = new Date().toLocaleTimeString();
-      localStorage.setItem('checkin-' + dateKey, time);
+      history.push({date:dateKey,time});
+      localStorage.setItem('checkin-history',JSON.stringify(history));
       btn.disabled = true;
       statusEl.textContent = `🎉 打卡成功！時間：${time}`;
+      renderHistory();
+      updateStreak();
+    });
+
+    exportBtn.addEventListener('click',()=>{
+      let csvContent = 'data:text/csv;charset=utf-8,';
+      csvContent += '日期,時間\n';
+      history.forEach(item=>{
+        csvContent += `${item.date},${item.time}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download','打卡紀錄.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     });
   </script>
 </body>
