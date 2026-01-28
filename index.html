@@ -1,174 +1,66 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>每日打卡 - 多人版</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f0f4f8;
-      color: #1e293b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      transition: background 0.3s, color 0.3s;
-    }
-    .dark-mode { background: #0f172a; color: #e5e7eb; }
-    .card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 24px 28px;
-      width: 400px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.1);
-      text-align: center;
-      transition: background 0.3s, color 0.3s;
-    }
-    .dark-mode .card { background: #1e293b; color: #e5e7eb; }
-    h1 { margin-top: 0; font-size: 1.5rem; }
-    .date { margin: 8px 0; color: #64748b; }
-    .dark-mode .date { color: #94a3b8; }
-    select, button { margin-top: 8px; padding: 10px; border-radius: 999px; border: none; font-size:1rem; cursor:pointer; }
-    select { width: 80%; }
-    button { background: #3b82f6; color: #fff; }
-    button:disabled { background: #94a3b8; cursor: not-allowed; }
-    .dark-mode button:not(#exportBtn) { background: #2563eb; }
-    .status { margin-top: 12px; font-size: 0.95rem; }
-    .streak { margin-top: 8px; font-weight: bold; color: #10b981; }
-    hr { margin:16px 0; border:0; border-top:1px solid #e2e8f0; }
-    .dark-mode hr { border-top:1px solid #334155; }
-    ul { list-style:none; padding-left:0; max-height:150px; overflow-y:auto; text-align:left; margin:0; }
-    li { margin-bottom:4px; }
-    #exportBtn { background: #ef4444; margin-top:12px; }
-    .dark-mode #exportBtn { background: #dc2626; }
-    #toggleTheme { background: #f59e0b; margin-top:12px; }
-    .dark-mode #toggleTheme { background: #facc15; color: #1e293b; }
-  </style>
+<meta charset="UTF-8">
+<title>我的每日打卡</title>
+
+<style>
+  body {
+    font-family: system-ui;
+    background: #0f172a;
+    color: #e5e7eb;
+    text-align: center;
+    padding: 20px;
+  }
+
+  input, button {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: none;
+    margin: 6px;
+    font-size: 1rem;
+  }
+
+  button {
+    background: #22c55e;
+    color: #022c22;
+    cursor: pointer;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 14px);
+    gap: 4px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .day {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
+  .lvl0 { background: #1e293b; }
+  .lvl1 { background: #86efac; }
+  .lvl2 { background: #4ade80; }
+  .lvl3 { background: #22c55e; }
+  .lvl4 { background: #16a34a; }
+</style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>📅 每日打卡 - 多人版</h1>
-    <div class="date" id="today"></div>
-    <select id="userSelect">
-      <option value="user1">蔡明勳</option>
-      <option value="user2">江帑</option>
-      <option value="user3">王歆琁</option>
-      <option value="user4">李宜臻</option>
-      <option value="user5">黃昱祺</option>
-    </select>
-    <button id="checkBtn">打卡</button>
-    <div class="status" id="status"></div>
-    <div class="streak" id="streak"></div>
-    <hr />
-    <div style="text-align:left; font-size:0.9rem;">
-      <strong>📖 打卡紀錄</strong>
-      <ul id="history"></ul>
-    </div>
-    <button id="exportBtn">匯出 CSV</button>
-    <button id="toggleTheme">切換深色模式</button>
-  </div>
+  <h1>📅 我的每日打卡</h1>
 
-  <script>
-    const today = new Date();
-    const dateKey = today.toISOString().split('T')[0];
-    const todayEl = document.getElementById('today');
-    const btn = document.getElementById('checkBtn');
-    const statusEl = document.getElementById('status');
-    const streakEl = document.getElementById('streak');
-    const historyEl = document.getElementById('history');
-    const exportBtn = document.getElementById('exportBtn');
-    const toggleThemeBtn = document.getElementById('toggleTheme');
-    const bodyEl = document.body;
-    const userSelect = document.getElementById('userSelect');
+  <input id="username" placeholder="輸入你的名字">
+  <br>
 
-    todayEl.textContent = `今天是 ${dateKey}`;
+  <button id="checkinBtn">今天打卡</button>
+  <button id="exportBtn">匯出 CSV</button>
 
-    let history = JSON.parse(localStorage.getItem('checkin-history') || '[]');
+  <p id="streak"></p>
+  <div class="grid" id="grid"></div>
 
-    function renderHistory() {
-      historyEl.innerHTML = '';
-      history.slice().reverse().forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = `👤 ${item.user} ✅ ${item.date} ${item.time}`;
-        historyEl.appendChild(li);
-      });
-    }
-
-    function calcStreak(user){
-      const userHistory = history.filter(h=>h.user===user).sort((a,b)=> new Date(a.date)-new Date(b.date));
-      if(userHistory.length===0) return 0;
-      let streak=0;
-      let todayDate=new Date(dateKey);
-      for(let i=userHistory.length-1;i>=0;i--){
-        let d = new Date(userHistory[i].date);
-        if(i===userHistory.length-1){
-          if(Math.abs(todayDate-d)/(1000*60*60*24)<=1){ streak++; todayDate = new Date(d); todayDate.setDate(todayDate.getDate()-1); } else break;
-        } else {
-          let prev = new Date(userHistory[i].date);
-          if(Math.abs(todayDate-prev)/(1000*60*60*24)<=1){ streak++; todayDate = new Date(prev); todayDate.setDate(todayDate.getDate()-1); } else break;
-        }
-      }
-      return streak;
-    }
-
-    function updateStreak(){
-      const streak = calcStreak(userSelect.value);
-      streakEl.textContent = `🔥 ${userSelect.options[userSelect.selectedIndex].text} 連續打卡 ${streak} 天`;
-    }
-
-    renderHistory();
-    updateStreak();
-
-    function checkToday(){
-      const checkedToday = history.find(h=>h.user===userSelect.value && h.date===dateKey);
-      if(checkedToday){
-        btn.disabled = true;
-        statusEl.textContent = `✅ ${userSelect.options[userSelect.selectedIndex].text} 已於 ${checkedToday.time} 打卡`;
-      } else {
-        btn.disabled = false;
-        statusEl.textContent = '';
-      }
-    }
-
-    checkToday();
-
-    btn.addEventListener('click',()=>{
-      const time = new Date().toLocaleTimeString();
-      const user = userSelect.value;
-      history.push({user,date:dateKey,time});
-      localStorage.setItem('checkin-history',JSON.stringify(history));
-      btn.disabled = true;
-      statusEl.textContent = `🎉 ${userSelect.options[userSelect.selectedIndex].text} 打卡成功！時間：${time}`;
-      renderHistory();
-      updateStreak();
-    });
-
-    userSelect.addEventListener('change',()=>{
-      updateStreak();
-      checkToday();
-    });
-
-    exportBtn.addEventListener('click',()=>{
-      let csvContent = 'data:text/csv;charset=utf-8,';
-      csvContent += '使用者,日期,時間\n';
-      history.forEach(item=>{
-        csvContent += `${userSelect.options[userSelect.selectedIndex].text},${item.date},${item.time}\n`;
-      });
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download','打卡紀錄.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    toggleThemeBtn.addEventListener('click',()=>{
-      bodyEl.classList.toggle('dark-mode');
-    });
-  </script>
-</body>
   <script src="checkin.js"></script>
+</body>
 </html>
