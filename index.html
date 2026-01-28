@@ -7,23 +7,22 @@
 <style>
 body {
   font-family: system-ui;
-  background: url("https://img.131213.xyz/tfile/BQACAgUAAx0Eflp52gABASOraXobuoWsBj_bp4eg7bVN2Lep08IAAhIfAAIRCdFXRb35U2KiGfo4BA") no-repeat center center fixed;
+  background: url("https://raw.githubusercontent.com/你的帳號/你的repo/main/background.jpg") no-repeat center center fixed;
   background-size: cover;
   color: #ffffff;
   text-align: center;
   padding: 20px;
-  position: relative;
   margin: 0;
+  position: relative;
 }
 body::before {
   content: "";
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5); /* 半透明遮罩，讓文字清楚 */
-  z-index: -1;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.5);
+  z-index:-1;
 }
-
 button {
   padding: 8px 14px;
   border-radius: 999px;
@@ -34,7 +33,6 @@ button {
   color: #022c22;
   cursor: pointer;
 }
-
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 20px);
@@ -47,18 +45,16 @@ button {
   height: 20px;
   border-radius: 3px;
   background: #1e293b;
-  cursor: pointer;
 }
 .lvl1 { background: #86efac; }
 .lvl2 { background: #4ade80; }
 .lvl3 { background: #22c55e; }
 .lvl4 { background: #16a34a; }
-
 </style>
 </head>
 <body>
 
-<h1>📅 個人每日打卡</h1>
+<h1>📅 蔡明勳每日打卡</h1>
 
 <button id="checkinBtn">今天打卡 ✅</button>
 <button id="exportBtn">匯出 CSV</button>
@@ -69,35 +65,27 @@ button {
 
 <script>
 const KEY = "checkin_history";
-const DAYS = 112;
+const DAYS = 112; // 顯示格子天數
 const FIXED_NAME = "蔡明勳";
 
 const grid = document.getElementById("grid");
 const streakEl = document.getElementById("streak");
 
-// 讀資料
-function load() {
-  return JSON.parse(localStorage.getItem(KEY)) || [];
-}
-function save(data) {
-  localStorage.setItem(KEY, JSON.stringify(data));
-}
-function today() {
-  return new Date().toISOString().split("T")[0];
-}
+function load() { return JSON.parse(localStorage.getItem(KEY)) || []; }
+function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+function today() { return new Date().toISOString().split("T")[0]; }
 
-// 打卡
+// 打卡按鈕
 document.getElementById("checkinBtn").onclick = () => {
   const data = load();
   const t = today();
   if (data.includes(t)) { alert("今天已打過卡 ✅"); return; }
-
   data.push(t);
   save(data);
   render();
 };
 
-// 計算連續天數
+// 計算連續打卡
 function calcStreak(data) {
   let streak = 0;
   let d = new Date();
@@ -108,7 +96,7 @@ function calcStreak(data) {
   return streak;
 }
 
-// 格子顏色
+// 格子顏色（連續天數加深）
 function getLevel(dateStr, data) {
   let count = 0;
   const d = new Date(dateStr);
@@ -121,32 +109,18 @@ function getLevel(dateStr, data) {
   return Math.min(count, 4);
 }
 
-// 畫格子
+// 渲染格子（無補打卡）
 function render() {
   const data = load();
   grid.innerHTML = "";
 
-  for (let i = DAYS - 1; i >= 0; i--) {
+  for (let i = DAYS-1; i >=0; i--) {
     const d = new Date();
-    d.setDate(d.getDate() - i);
+    d.setDate(d.getDate()-i);
     const dateStr = d.toISOString().split("T")[0];
     const div = document.createElement("div");
     div.className = `day lvl${getLevel(dateStr, data)}`;
-
-    // hover 顯示日期 + ✅ 或 ❌
     div.title = data.includes(dateStr) ? `✅ ${dateStr}` : `❌ ${dateStr}`;
-
-    // 點格子補打卡
-    div.onclick = () => {
-      if (!data.includes(dateStr)) {
-        data.push(dateStr);
-        save(data);
-        render();
-      } else {
-        alert(`${dateStr} 已打過卡 ✅`);
-      }
-    };
-
     grid.appendChild(div);
   }
 
@@ -158,7 +132,7 @@ render();
 // 匯出 CSV
 document.getElementById("exportBtn").onclick = () => {
   const data = load();
-  if (data.length === 0) { alert("沒有打卡資料可以匯出"); return; }
+  if (data.length===0) { alert("沒有打卡資料可以匯出"); return; }
 
   let csv = "姓名,日期,是否打卡\n";
   data.forEach(e => {
