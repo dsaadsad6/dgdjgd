@@ -14,6 +14,11 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background: #0f172a;
+      color: #e5e7eb;
     }
     .card {
       background: #ffffff;
@@ -22,15 +27,15 @@
       width: 360px;
       box-shadow: 0 10px 30px rgba(0,0,0,.1);
       text-align: center;
+      transition: background 0.3s, color 0.3s;
     }
-    h1 {
-      margin-top: 0;
-      font-size: 1.5rem;
+    .dark-mode .card {
+      background: #1e293b;
+      color: #e5e7eb;
     }
-    .date {
-      margin: 8px 0;
-      color: #64748b;
-    }
+    h1 { margin-top: 0; font-size: 1.5rem; }
+    .date { margin: 8px 0; color: #64748b; }
+    .dark-mode .date { color: #94a3b8; }
     button {
       background: #3b82f6;
       color: #ffffff;
@@ -40,40 +45,20 @@
       font-size: 1rem;
       cursor: pointer;
       margin-top: 8px;
+      transition: background 0.3s;
     }
-    button:disabled {
-      background: #94a3b8;
-      cursor: not-allowed;
-    }
-    .status {
-      margin-top: 12px;
-      font-size: 0.95rem;
-    }
-    .streak {
-      margin-top: 8px;
-      font-weight: bold;
-      color: #10b981;
-    }
-    hr {
-      margin:16px 0;
-      border:0;
-      border-top:1px solid #e2e8f0;
-    }
-    ul {
-      list-style:none;
-      padding-left:0;
-      max-height:150px;
-      overflow-y:auto;
-      text-align:left;
-      margin:0;
-    }
-    li {
-      margin-bottom:4px;
-    }
-    #exportBtn {
-      background: #ef4444;
-      margin-top:12px;
-    }
+    button:disabled { background: #94a3b8; cursor: not-allowed; }
+    .dark-mode button:not(#exportBtn) { background: #2563eb; }
+    .status { margin-top: 12px; font-size: 0.95rem; }
+    .streak { margin-top: 8px; font-weight: bold; color: #10b981; }
+    hr { margin:16px 0; border:0; border-top:1px solid #e2e8f0; }
+    .dark-mode hr { border-top:1px solid #334155; }
+    ul { list-style:none; padding-left:0; max-height:150px; overflow-y:auto; text-align:left; margin:0; }
+    li { margin-bottom:4px; }
+    #exportBtn { background: #ef4444; margin-top:12px; }
+    .dark-mode #exportBtn { background: #dc2626; }
+    #toggleTheme { background: #f59e0b; margin-top:12px; }
+    .dark-mode #toggleTheme { background: #facc15; color: #1e293b; }
   </style>
 </head>
 <body>
@@ -89,6 +74,7 @@
       <ul id="history"></ul>
     </div>
     <button id="exportBtn">匯出 CSV</button>
+    <button id="toggleTheme">切換深色模式</button>
   </div>
 
   <script>
@@ -100,6 +86,8 @@
     const streakEl = document.getElementById('streak');
     const historyEl = document.getElementById('history');
     const exportBtn = document.getElementById('exportBtn');
+    const toggleThemeBtn = document.getElementById('toggleTheme');
+    const bodyEl = document.body;
 
     todayEl.textContent = `今天是 ${dateKey}`;
 
@@ -122,18 +110,10 @@
       for(let i=sorted.length-1;i>=0;i--){
         let d = new Date(sorted[i].date);
         if(i===sorted.length-1){
-          if(Math.abs(todayDate-d)/(1000*60*60*24)<=1){
-            streak++;
-            todayDate = new Date(d);
-            todayDate.setDate(todayDate.getDate()-1);
-          }else break;
+          if(Math.abs(todayDate-d)/(1000*60*60*24)<=1){ streak++; todayDate = new Date(d); todayDate.setDate(todayDate.getDate()-1); } else break;
         } else {
           let prev = new Date(sorted[i].date);
-          if(Math.abs(todayDate-prev)/(1000*60*60*24)<=1){
-            streak++;
-            todayDate = new Date(prev);
-            todayDate.setDate(todayDate.getDate()-1);
-          } else break;
+          if(Math.abs(todayDate-prev)/(1000*60*60*24)<=1){ streak++; todayDate = new Date(prev); todayDate.setDate(todayDate.getDate()-1); } else break;
         }
       }
       return streak;
@@ -176,6 +156,10 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    });
+
+    toggleThemeBtn.addEventListener('click',()=>{
+      bodyEl.classList.toggle('dark-mode');
     });
   </script>
 </body>
