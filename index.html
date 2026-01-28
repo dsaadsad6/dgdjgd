@@ -34,6 +34,7 @@ button {
   height: 14px;
   border-radius: 3px;
   background: #1e293b;
+  cursor: pointer;
 }
 .lvl1 { background: #86efac; }
 .lvl2 { background: #4ade80; }
@@ -70,15 +71,17 @@ function save(data) {
 function today() {
   return new Date().toISOString().split("T")[0];
 }
+function currentTime() {
+  return new Date().toLocaleTimeString();
+}
 
 // 打卡
 document.getElementById("checkinBtn").onclick = () => {
   const data = load();
   const t = today();
-  const exist = data.find(e => e.date === t);
-  if (exist) { alert("今天已打過卡"); return; }
+  if (data.find(e => e.date === t)) { alert("今天已打過卡"); return; }
 
-  data.push({ date: t });
+  data.push({ date: t, time: currentTime() });
   save(data);
   render();
 };
@@ -115,8 +118,27 @@ function render() {
   for (let i = DAYS - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
     const div = document.createElement("div");
-    div.className = `day lvl${getLevel(d.toISOString().split("T")[0], data)}`;
+    div.className = `day lvl${getLevel(dateStr, data)}`;
+
+    // hover 顯示打卡時間
+    const entry = data.find(e => e.date === dateStr);
+    if (entry) div.title = `${dateStr} ${entry.time}`;
+    else div.title = `${dateStr}（未打卡）`;
+
+    // 點格子補打卡
+    div.onclick = () => {
+      const existing = data.find(e => e.date === dateStr);
+      if (!existing) {
+        data.push({ date: dateStr, time: currentTime() });
+        save(data);
+        render();
+      } else {
+        alert(`${dateStr} 已打過卡（${existing.time}）`);
+      }
+    };
+
     grid.appendChild(div);
   }
 
@@ -130,9 +152,9 @@ document.getElementById("exportBtn").onclick = () => {
   const data = load();
   if (data.length === 0) { alert("沒有打卡資料可以匯出"); return; }
 
-  let csv = "姓名,日期,是否打卡\n";
+  let csv = "姓名,日期,時間,是否打卡\n";
   data.forEach(e => {
-    csv += `${FIXED_NAME},${e.date},是\n`;
+    csv += `${FIXED_NAME},${e.date},${e.time},是\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
