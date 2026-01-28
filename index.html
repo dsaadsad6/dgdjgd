@@ -52,11 +52,11 @@
     <h1>📅 每日打卡 - 多人版</h1>
     <div class="date" id="today"></div>
     <select id="userSelect">
-      <option value="Alice">蔡明勳</option>
-      <option value="Bob">江帑</option>
-      <option value="Charlie">王歆琁</option>
-      <option value="David">李宜臻</option>
-      <option value="David">黃昱祺</option>
+      <option value="user1">蔡明勳</option>
+      <option value="user2">江帑</option>
+      <option value="user3">王歆琁</option>
+      <option value="user4">李宜臻</option>
+      <option value="user5">黃昱祺</option>
     </select>
     <button id="checkBtn">打卡</button>
     <div class="status" id="status"></div>
@@ -115,7 +115,7 @@
 
     function updateStreak(){
       const streak = calcStreak(userSelect.value);
-      streakEl.textContent = `🔥 ${userSelect.value} 連續打卡 ${streak} 天`;
+      streakEl.textContent = `🔥 ${userSelect.options[userSelect.selectedIndex].text} 連續打卡 ${streak} 天`;
     }
 
     renderHistory();
@@ -125,7 +125,7 @@
       const checkedToday = history.find(h=>h.user===userSelect.value && h.date===dateKey);
       if(checkedToday){
         btn.disabled = true;
-        statusEl.textContent = `✅ ${userSelect.value} 已於 ${checkedToday.time} 打卡`;
+        statusEl.textContent = `✅ ${userSelect.options[userSelect.selectedIndex].text} 已於 ${checkedToday.time} 打卡`;
       } else {
         btn.disabled = false;
         statusEl.textContent = '';
@@ -140,7 +140,7 @@
       history.push({user,date:dateKey,time});
       localStorage.setItem('checkin-history',JSON.stringify(history));
       btn.disabled = true;
-      statusEl.textContent = `🎉 ${user} 打卡成功！時間：${time}`;
+      statusEl.textContent = `🎉 ${userSelect.options[userSelect.selectedIndex].text} 打卡成功！時間：${time}`;
       renderHistory();
       updateStreak();
     });
@@ -154,7 +154,7 @@
       let csvContent = 'data:text/csv;charset=utf-8,';
       csvContent += '使用者,日期,時間\n';
       history.forEach(item=>{
-        csvContent += `${item.user},${item.date},${item.time}\n`;
+        csvContent += `${userSelect.options[userSelect.selectedIndex].text},${item.date},${item.time}\n`;
       });
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
